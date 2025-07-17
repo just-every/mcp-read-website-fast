@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/just-every-mcp-read-website-fast-badge.png)](https://mseep.ai/app/just-every-mcp-read-website-fast)
+
 # @just-every/mcp-read-website-fast
 
 Fast, token-efficient web content extraction for AI agents - converts websites to clean Markdown.
