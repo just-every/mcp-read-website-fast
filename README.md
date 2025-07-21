@@ -5,6 +5,10 @@ Fast, token-efficient web content extraction for AI agents - converts websites t
 [![npm version](https://badge.fury.io/js/@just-every%2Fmcp-read-website-fast.svg)](https://www.npmjs.com/package/@just-every/mcp-read-website-fast)
 [![GitHub Actions](https://github.com/just-every/mcp-read-website-fast/workflows/Release/badge.svg)](https://github.com/just-every/mcp-read-website-fast/actions)
 
+<a href="https://glama.ai/mcp/servers/@just-every/mcp-read-website-fast">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@just-every/mcp-read-website-fast/badge" alt="read-website-fast MCP server" />
+</a>
+
 ## Overview
 
 Existing MCP web crawlers are slow and consume large quantities of tokens. This pauses the development process and provides incomplete results as LLMs need to parse whole web pages.
