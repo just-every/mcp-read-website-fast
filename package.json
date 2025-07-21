@@ -1,6 +1,6 @@
 {
   "name": "@just-every/mcp-read-website-fast",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Markdown Content Preprocessor - Fetch web pages, extract content, convert to clean Markdown",
   "main": "dist/index.js",
   "bin": {
