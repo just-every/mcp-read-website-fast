@@ -1,0 +1,77 @@
+name: Simple Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version type (patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Cache node_modules
+      id: cache-node-modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-modules-
+          
+    - name: Install dependencies
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Run deployment tests
+      run: npm run test:deploy
+        
+    - name: Bump version (no commit)
+      run: |
+        npm version ${{ github.event.inputs.version }} --no-git-tag-version
+        echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+        
+    - name: Publish to npm
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ env.VERSION }}
+        release_name: Release v${{ env.VERSION }}
+        body: |
+          Released version ${{ env.VERSION }} to npm
+          
+          Install with:
+          ```bash
+          npm install @just-every/mcp-read-website-fast@${{ env.VERSION }}
+          ```
+        draft: false
+        prerelease: false

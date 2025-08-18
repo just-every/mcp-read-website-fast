@@ -5,6 +5,8 @@ Fast, token-efficient web content extraction for AI agents - converts websites t
 [![npm version](https://badge.fury.io/js/@just-every%2Fmcp-read-website-fast.svg)](https://www.npmjs.com/package/@just-every/mcp-read-website-fast)
 [![GitHub Actions](https://github.com/just-every/mcp-read-website-fast/workflows/Release/badge.svg)](https://github.com/just-every/mcp-read-website-fast/actions)
 
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/just-every/mcp-read-website-fast)](https://archestra.ai/mcp-catalog/just-every__mcp-read-website-fast)
+
 <a href="https://glama.ai/mcp/servers/@just-every/mcp-read-website-fast">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@just-every/mcp-read-website-fast/badge" alt="read-website-fast MCP server" />
 </a>
