@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/workflows/test.yml'
+      - 'examples/**'
+      - '**/*.test.ts'
+      - 'test/**'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Test, Build and Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Skip if commit message contains [skip ci]
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Run deployment tests
+      run: npm run test:deploy
+        
+    - name: Bump version
+      id: version
+      run: |
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Get current version
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Bump version
+        npm version patch --no-git-tag-version
+        NEW_VERSION=$(node -p "require('./package.json').version")
+        echo "New version: $NEW_VERSION"
+        echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+        
+        # Commit changes
+        git add package.json package-lock.json
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+          echo "skip_push=true" >> $GITHUB_OUTPUT
+        else
+          git commit -m "chore(release): ${NEW_VERSION} [skip ci]"
+          git tag "v${NEW_VERSION}"
+          echo "skip_push=false" >> $GITHUB_OUTPUT
+        fi
+      
+    - name: Check if we should publish
+      id: should_publish
+      run: |
+        if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+          echo "NPM_TOKEN not set, skipping publish"
+          echo "publish=false" >> $GITHUB_OUTPUT
+        else
+          echo "NPM_TOKEN is set, will publish"
+          echo "publish=true" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Publish to npm
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      if: steps.should_publish.outputs.publish == 'true'
+        
+    - name: Push changes
+      run: |
+        git push origin main
+        git push origin --tags
+      if: steps.version.outputs.skip_push != 'true'
