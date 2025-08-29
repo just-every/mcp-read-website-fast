@@ -34,6 +34,7 @@ program
     .option('-u, --user-agent <string>', 'Custom user agent')
     .option('--cache-dir <path>', 'Cache directory', '.cache')
     .option('-t, --timeout <ms>', 'Request timeout in milliseconds', '30000')
+    .option('--cookies-file <path>', 'Path to Netscape cookie file for authenticated pages')
     .option(
         '-o, --output <format>',
         'Output format: json, markdown, or both',
@@ -52,6 +53,7 @@ program
                 userAgent: options.userAgent,
                 cacheDir: options.cacheDir,
                 timeout: parseInt(options.timeout, 10),
+                cookiesFile: options.cookiesFile,
             };
 
             console.error(`Fetching ${url}...`);

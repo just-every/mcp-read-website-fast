@@ -10,6 +10,7 @@ export interface FetchMarkdownOptions {
     cacheDir?: string;
     timeout?: number;
     maxPages?: number;
+    cookiesFile?: string;
 }
 
 export interface FetchMarkdownResult {
@@ -46,6 +47,7 @@ export async function fetchMarkdown(
                 userAgent: options.userAgent,
                 cacheDir: options.cacheDir ?? '.cache',
                 timeout: options.timeout ?? 30000,
+                cookiesFile: options.cookiesFile,
             };
 
             const results = await fetch(currentUrl, crawlOptions);

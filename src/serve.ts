@@ -67,6 +67,11 @@ const READ_WEBSITE_TOOL: Tool = {
                 minimum: 1,
                 maximum: 100,
             },
+            cookiesFile: {
+                type: 'string',
+                description: 'Path to Netscape cookie file for authenticated pages',
+                optional: true,
+            },
         },
         required: ['url'],
     },
@@ -138,6 +143,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         logger.debug('Read parameters:', {
             url: args.url,
             pages: args.pages,
+            cookiesFile: args.cookiesFile,
         });
 
         logger.debug('Calling fetchMarkdown...');
@@ -151,6 +157,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
             depth: depth,
             respectRobots: false,  // Default to not respecting robots.txt
             maxPages: args.pages ?? 1,
+            cookiesFile: args.cookiesFile,
         });
         logger.info('Content fetched successfully');
 
