@@ -53,8 +53,11 @@ program
                 userAgent: options.userAgent,
                 cacheDir: options.cacheDir,
                 timeout: parseInt(options.timeout, 10),
-                cookiesFile: options.cookiesFile,
             };
+            // Optional cookie support (available in newer @just-every/crawl)
+            if (options.cookiesFile) {
+                (crawlOptions as any).cookiesFile = options.cookiesFile;
+            }
 
             console.error(`Fetching ${url}...`);
             
@@ -78,7 +81,7 @@ program
                 }
             } else if (options.output === 'both') {
                 const results = await fetch(url, crawlOptions);
-                results.forEach(result => {
+                results.forEach((result: any) => {
                     console.log(`\n## URL: ${result.url}\n`);
                     if (result.markdown) {
                         console.log(result.markdown);

@@ -47,8 +47,10 @@ export async function fetchMarkdown(
                 userAgent: options.userAgent,
                 cacheDir: options.cacheDir ?? '.cache',
                 timeout: options.timeout ?? 30000,
-                cookiesFile: options.cookiesFile,
             };
+            if (options.cookiesFile) {
+                (crawlOptions as any).cookiesFile = options.cookiesFile;
+            }
 
             const results = await fetch(currentUrl, crawlOptions);
             
