@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 
@@ -19,10 +19,11 @@ async function main() {
     // Use compiled JavaScript for production (fast startup)
     if (command === 'serve') {
       const servePath = join(__dirname, '..', 'dist', 'serve-restart.js');
-      await import(servePath);
+      // Convert absolute path to file:// URL for Windows ESM loader compatibility
+      await import(pathToFileURL(servePath).href);
     } else {
       const cliPath = join(__dirname, '..', 'dist', 'index.js');
-      await import(cliPath);
+      await import(pathToFileURL(cliPath).href);
     }
   } else {
     // Fall back to TypeScript with tsx for development
@@ -31,10 +32,10 @@ async function main() {
       
       if (command === 'serve') {
         const servePath = join(__dirname, '..', 'src', 'serve-restart.ts');
-        await import(servePath);
+        await import(pathToFileURL(servePath).href);
       } else {
         const cliPath = join(__dirname, '..', 'src', 'index.ts');
-        await import(cliPath);
+        await import(pathToFileURL(cliPath).href);
       }
     } catch (error) {
       console.error('Error: Development dependencies not installed. Please run "npm install" first.');
