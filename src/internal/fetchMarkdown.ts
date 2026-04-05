@@ -1,4 +1,5 @@
-import { fetch, CrawlOptions } from '@just-every/crawl';
+import type { CrawlOptions } from '@just-every/crawl';
+import { loadCrawlModule } from './crawlCompat.js';
 import { extractMarkdownLinks, filterSameOriginLinks } from '../utils/extractMarkdownLinks.js';
 
 export interface FetchMarkdownOptions {
@@ -52,6 +53,7 @@ export async function fetchMarkdown(
                 (crawlOptions as any).cookiesFile = options.cookiesFile;
             }
 
+            const { fetch } = await loadCrawlModule();
             const results = await fetch(currentUrl, crawlOptions);
             
             if (results && results.length > 0) {

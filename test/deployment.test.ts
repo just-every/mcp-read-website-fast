@@ -12,7 +12,7 @@ describe('Deployment Tests', () => {
     // Ensure the project is built
     const { execSync } = await import('child_process');
     execSync('npm run build', { cwd: rootDir });
-  });
+  }, 30000);
 
   it('should have correct package name', async () => {
     const pkg = await import('../package.json');
@@ -25,7 +25,7 @@ describe('Deployment Tests', () => {
   });
 
   it('should start MCP server without errors', async () => {
-    const serverProcess = spawn('node', [join(rootDir, 'dist/serve.js')], {
+    const serverProcess = spawn(process.execPath, [join(rootDir, 'dist/serve.js')], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { ...process.env, MCP_DEBUG: 'true' }
     });
@@ -60,7 +60,7 @@ describe('Deployment Tests', () => {
 
   it('should default to serve command when no args provided', async () => {
     const binPath = join(rootDir, 'bin/mcp-read-website.js');
-    const binProcess = spawn('node', [binPath], {
+    const binProcess = spawn(process.execPath, [binPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { ...process.env, MCP_DEBUG: 'true' }
     });
@@ -90,7 +90,7 @@ describe('Deployment Tests', () => {
 
   it('should handle fetch command', async () => {
     const binPath = join(rootDir, 'bin/mcp-read-website.js');
-    const binProcess = spawn('node', [binPath, 'fetch', '--help'], {
+    const binProcess = spawn(process.execPath, [binPath, 'fetch', '--help'], {
       stdio: ['pipe', 'pipe', 'pipe']
     });
 

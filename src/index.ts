@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { fetch, CrawlOptions } from '@just-every/crawl';
+import type { CrawlOptions } from '@just-every/crawl';
 import { fetchMarkdown } from './internal/fetchMarkdown.js';
+import { loadCrawlModule } from './internal/crawlCompat.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -62,6 +63,7 @@ program
             console.error(`Fetching ${url}...`);
             
             if (options.output === 'json') {
+                const { fetch } = await loadCrawlModule();
                 const results = await fetch(url, crawlOptions);
                 console.log(JSON.stringify(results, null, 2));
             } else if (options.output === 'markdown') {
@@ -80,6 +82,7 @@ program
                     console.error(`Error: ${result.error}`);
                 }
             } else if (options.output === 'both') {
+                const { fetch } = await loadCrawlModule();
                 const results = await fetch(url, crawlOptions);
                 results.forEach((result: any) => {
                     console.log(`\n## URL: ${result.url}\n`);
