@@ -53,6 +53,7 @@
     "@just-every/crawl": "^1.0.8",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^14.0.3",
+    "turndown-plugin-gfm": "^1.0.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
