@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import type { CrawlOptions } from '@just-every/crawl';
 import { fetchMarkdown } from './internal/fetchMarkdown.js';
-import { loadCrawlModule } from './internal/crawlCompat.js';
+import { secureCrawl } from './internal/secureCrawl.js';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -35,7 +35,10 @@ program
     .option('-u, --user-agent <string>', 'Custom user agent')
     .option('--cache-dir <path>', 'Cache directory', '.cache')
     .option('-t, --timeout <ms>', 'Request timeout in milliseconds', '30000')
-    .option('--cookies-file <path>', 'Path to Netscape cookie file for authenticated pages')
+    .option(
+        '--cookies-file <path>',
+        'Path to Netscape cookie file for authenticated pages'
+    )
     .option(
         '-o, --output <format>',
         'Output format: json, markdown, or both',
@@ -45,7 +48,7 @@ program
         try {
             const pages = parseInt(options.pages, 10);
             const depth = pages > 1 ? 1 : 0; // If more than 1 page requested, crawl 1 level deep
-            
+
             const crawlOptions: CrawlOptions = {
                 depth: depth,
                 maxConcurrency: parseInt(options.concurrency, 10),
@@ -61,29 +64,30 @@ program
             }
 
             console.error(`Fetching ${url}...`);
-            
+
             if (options.output === 'json') {
-                const { fetch } = await loadCrawlModule();
-                const results = await fetch(url, crawlOptions);
+                const results = await secureCrawl(url, crawlOptions);
                 console.log(JSON.stringify(results, null, 2));
             } else if (options.output === 'markdown') {
                 const result = await fetchMarkdown(url, {
                     ...crawlOptions,
                     maxPages: pages,
                 });
-                
+
                 // Output the combined markdown
                 if (result.markdown) {
                     console.log(result.markdown);
                 }
-                
+
                 // Show error if any
                 if (result.error) {
                     console.error(`Error: ${result.error}`);
+                    if (!result.markdown) {
+                        process.exit(1);
+                    }
                 }
             } else if (options.output === 'both') {
-                const { fetch } = await loadCrawlModule();
-                const results = await fetch(url, crawlOptions);
+                const results = await secureCrawl(url, crawlOptions);
                 results.forEach((result: any) => {
                     console.log(`\n## URL: ${result.url}\n`);
                     if (result.markdown) {

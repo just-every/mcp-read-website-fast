@@ -1,6 +1,10 @@
 import type { CrawlOptions } from '@just-every/crawl';
-import { loadCrawlModule } from './crawlCompat.js';
-import { extractMarkdownLinks, filterSameOriginLinks } from '../utils/extractMarkdownLinks.js';
+import {
+    extractMarkdownLinks,
+    filterSameOriginLinks,
+} from '../utils/extractMarkdownLinks.js';
+import { assertPublicHttpUrl } from '../utils/urlPolicy.js';
+import { secureCrawl } from './secureCrawl.js';
 
 export interface FetchMarkdownOptions {
     depth?: number;
@@ -30,15 +34,16 @@ export async function fetchMarkdown(
         const visited = new Set<string>();
         const toVisit = [url];
         const allResults: any[] = [];
-        
+
         // If we want multiple pages, we need to crawl iteratively
         while (toVisit.length > 0 && allResults.length < maxPages) {
             const currentUrl = toVisit.shift()!;
-            
+
             // Skip if already visited
             if (visited.has(currentUrl)) continue;
             visited.add(currentUrl);
-            
+            await assertPublicHttpUrl(currentUrl);
+
             // Fetch single page
             const crawlOptions: CrawlOptions = {
                 depth: 0, // Always single page
@@ -53,20 +58,23 @@ export async function fetchMarkdown(
                 (crawlOptions as any).cookiesFile = options.cookiesFile;
             }
 
-            const { fetch } = await loadCrawlModule();
-            const results = await fetch(currentUrl, crawlOptions);
-            
+            const results = await secureCrawl(currentUrl, crawlOptions);
+
             if (results && results.length > 0) {
                 const result = results[0];
                 allResults.push(result);
-                
+
                 // Extract links from markdown if we need more pages
                 if (allResults.length < maxPages && result.markdown) {
-                    const links = extractMarkdownLinks(result.markdown, currentUrl);
-                    const filteredLinks = options.sameOriginOnly !== false 
-                        ? filterSameOriginLinks(links, currentUrl)
-                        : links;
-                    
+                    const links = extractMarkdownLinks(
+                        result.markdown,
+                        currentUrl
+                    );
+                    const filteredLinks =
+                        options.sameOriginOnly !== false
+                            ? filterSameOriginLinks(links, currentUrl)
+                            : links;
+
                     // Add new links to visit queue
                     for (const link of filteredLinks) {
                         if (!visited.has(link) && !toVisit.includes(link)) {
@@ -76,7 +84,7 @@ export async function fetchMarkdown(
                 }
             }
         }
-        
+
         if (allResults.length === 0) {
             return {
                 markdown: '',
@@ -93,20 +101,20 @@ export async function fetchMarkdown(
                 if (result.error) {
                     return `<!-- Error fetching ${result.url}: ${result.error} -->`;
                 }
-                
+
                 let pageContent = '';
-                
+
                 // Add page separator for multiple pages
                 if (pagesToReturn.length > 1 && index > 0) {
                     pageContent += '\n\n---\n\n';
                 }
-                
+
                 // Add source URL as a comment
                 pageContent += `<!-- Source: ${result.url} -->\n`;
-                
+
                 // Add the content
                 pageContent += result.markdown || '';
-                
+
                 return pageContent;
             })
             .join('\n');
@@ -116,8 +124,11 @@ export async function fetchMarkdown(
             markdown: combinedMarkdown,
             title: pagesToReturn[0].title,
             links: pagesToReturn.flatMap(r => r.links || []),
-            error: pagesToReturn.some(r => r.error) 
-                ? `Some pages had errors: ${pagesToReturn.filter(r => r.error).map(r => r.url).join(', ')}`
+            error: pagesToReturn.some(r => r.error)
+                ? `Some pages had errors: ${pagesToReturn
+                      .filter(r => r.error)
+                      .map(r => r.url)
+                      .join(', ')}`
                 : undefined,
         };
     } catch (error) {
