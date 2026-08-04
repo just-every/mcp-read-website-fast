@@ -99,7 +99,9 @@ describe('turndown-plugin-gfm compatibility', () => {
     });
 
     expect(failingRun.status).not.toBe(0);
-    expect(failingRun.stderr).toContain("Named export 'gfm' not found");
+    expect(failingRun.stderr).toMatch(
+      /Named export 'gfm' not found|does not provide an export named 'gfm'/
+    );
 
     const redirectedUrl = resolvePackageModuleUrlFromImporter(
       'fake-turndown-plugin-gfm',
